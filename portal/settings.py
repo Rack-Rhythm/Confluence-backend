@@ -135,20 +135,12 @@ SIMPLE_JWT = {
     'SIGNING_KEY': SECRET_KEY,
 }
 
-# CORS Configuration (H-07 audit)
+# CORS Configuration (Allows Vercel frontend deployments and local dev)
 CORS_ALLOW_CREDENTIALS = True
-cors_origins_env = os.environ.get('CORS_ALLOWED_ORIGINS')
-if cors_origins_env:
-    CORS_ALLOWED_ORIGINS = [orig.strip() for orig in cors_origins_env.split(',') if orig.strip()]
-    CORS_ALLOW_ALL_ORIGINS = False
-else:
-    CORS_ALLOWED_ORIGINS = [
-        'http://localhost:5173',
-        'http://127.0.0.1:5173',
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
-    ]
-    CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
+]
 
 # Production Security Headers & Cookies
 if not DEBUG:
