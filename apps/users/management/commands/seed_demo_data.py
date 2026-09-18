@@ -50,24 +50,20 @@ class Command(BaseCommand):
             defaults={"org_type": "csr", "website": "https://www.jindalsteelpower.com"}
         )
 
-        # 3. Users
+        # Call seed_demo_users command to ensure the 6 core demo accounts are created & synced
+        from django.core.management import call_command
+        call_command('seed_demo_users')
+
         pwd = "Password@123"
 
         # Gov Admin
         admin_user, _ = User.objects.get_or_create(
-            email="admin@jharkhand.gov.in",
-            defaults={"name": "Director HTE (Gov Admin)", "role": User.Role.GOV_ADMIN, "is_staff": True, "is_superuser": True}
+            email="govtadmin@confluence.demo",
+            defaults={"name": "Director HTE (Gov Admin)", "role": User.Role.GOV_ADMIN, "is_staff": True, "is_superuser": False}
         )
-        admin_user.set_password(pwd)
+        admin_user.is_superuser = False
+        admin_user.set_password("GovtAdmin@123")
         admin_user.save()
-
-        # Master Super Admin
-        superadmin_user, _ = User.objects.get_or_create(
-            email="superadmin@confluence.gov.in",
-            defaults={"name": "Master Super Admin", "role": User.Role.ADMIN, "is_staff": True, "is_superuser": True}
-        )
-        superadmin_user.set_password(pwd)
-        superadmin_user.save()
 
         # Citizens
         citizen1, _ = User.objects.get_or_create(

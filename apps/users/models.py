@@ -150,3 +150,25 @@ class AuditLog(models.Model):
     def __str__(self):
         return f"AuditLog [{self.action}] on {self.entity_type} #{self.entity_id} by {self.actor}"
 
+
+class DemoCredential(models.Model):
+    """
+    Dedicated table storing clean demo login credentials for fast reference & Supabase dashboard inspection.
+    """
+    role_name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=255)
+    role_code = models.CharField(max_length=50)
+    is_staff = models.BooleanField(default=False)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = "Demo Credential"
+        verbose_name_plural = "Demo Credentials"
+
+    def __str__(self):
+        return f"{self.role_name} ({self.email})"
+
+
