@@ -51,6 +51,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -141,6 +142,13 @@ CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://.*\.vercel\.app$",
 ]
+# Cache CORS preflight OPTIONS requests for 24h to eliminate redundant pre-flight bandwidth
+CORS_PREFLIGHT_MAX_AGE = 86400
+
+# Bandwidth & Memory Protections (Prevents exhaustion of free tier quotas)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5 MB maximum request body
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5 MB maximum file upload
+WHITENOISE_MAX_AGE = 31536000 if not DEBUG else 0  # 1-year browser cache for static files
 
 # Production Security Headers & Cookies
 if not DEBUG:
