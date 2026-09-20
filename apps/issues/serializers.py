@@ -112,17 +112,46 @@ class OpenCallSerializer(serializers.ModelSerializer):
     university_details = UniversitySerializer(source='university', read_only=True)
     created_by_details = UserProfileSerializer(source='created_by', read_only=True)
     challenge = serializers.IntegerField(source='issue_id', read_only=True)
+    issue_photo = serializers.ImageField(source='issue.photo', read_only=True)
+    issue_photo_url = serializers.CharField(source='issue.photo_url', read_only=True)
+    category = serializers.CharField(source='issue.category', read_only=True)
+    district = serializers.CharField(source='issue.district', read_only=True)
+    issue_details = serializers.SerializerMethodField()
 
     class Meta:
         model = OpenCall
         fields = [
-            'id', 'issue', 'challenge', 'university', 'university_details',
+            'id', 'issue', 'challenge', 'issue_photo', 'issue_photo_url', 'issue_details',
+            'category', 'district',
+            'university', 'university_details',
             'created_by', 'created_by_details', 'title', 'description',
             'opening_date', 'closing_date', 'eligibility', 'required_skills',
             'departments', 'funding', 'evaluation_criteria', 'max_teams',
             'status', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'challenge', 'university', 'university_details', 'created_by', 'created_by_details', 'created_at', 'updated_at']
+        read_only_fields = [
+            'id', 'challenge', 'issue_photo', 'issue_photo_url', 'issue_details',
+            'category', 'district',
+            'university', 'university_details', 'created_by', 'created_by_details', 'created_at', 'updated_at'
+        ]
+
+    def get_issue_details(self, obj):
+        if obj.issue:
+            request = self.context.get('request')
+            photo_url = None
+            if obj.issue.photo:
+                photo_url = request.build_absolute_uri(obj.issue.photo.url) if request else obj.issue.photo.url
+            return {
+                'id': obj.issue.id,
+                'public_id': getattr(obj.issue, 'public_id', None),
+                'title': obj.issue.title,
+                'category': obj.issue.category,
+                'district': obj.issue.district,
+                'status': obj.issue.status,
+                'photo': photo_url,
+                'photo_url': obj.issue.photo_url,
+            }
+        return None
 
 
 class IssueSerializer(serializers.ModelSerializer):
