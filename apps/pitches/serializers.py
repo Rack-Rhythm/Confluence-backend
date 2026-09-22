@@ -167,6 +167,9 @@ class PitchVersionHistorySerializer(serializers.ModelSerializer):
 
 class PitchSerializer(serializers.ModelSerializer):
     challenge = serializers.IntegerField(source='issue_id', read_only=True)
+    issue_photo = serializers.ImageField(source='issue.photo', read_only=True)
+    issue_photo_url = serializers.CharField(source='issue.photo_url', read_only=True)
+    issue_details = serializers.SerializerMethodField()
     summary = serializers.CharField(source='public_summary', read_only=True)
     proposed_solution = serializers.CharField(source='public_summary', read_only=True)
     expected_impact = serializers.CharField(source='public_summary', read_only=True)
@@ -185,7 +188,8 @@ class PitchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pitch
         fields = [
-            'id', 'public_id', 'issue', 'challenge', 'university', 'university_details', 'open_call',
+            'id', 'public_id', 'issue', 'challenge', 'issue_photo', 'issue_photo_url', 'issue_details',
+            'university', 'university_details', 'open_call',
             'title', 'version', 'student_team', 'team', 'student_team_details', 'collaborators',
             'public_summary', 'summary', 'proposed_solution', 'expected_impact',
             'confidential_package', 'private_details',
@@ -196,12 +200,31 @@ class PitchSerializer(serializers.ModelSerializer):
             'version_history', 'evaluations', 'created_at', 'updated_at'
         ]
         read_only_fields = [
-            'id', 'public_id', 'challenge', 'summary', 'proposed_solution', 'expected_impact',
+            'id', 'public_id', 'challenge', 'issue_photo', 'issue_photo_url', 'issue_details',
+            'summary', 'proposed_solution', 'expected_impact',
             'private_details', 'team', 'submission_hash', 'submission_timestamp', 'status',
             'version', 'student_team_details', 'collaborators', 'university_details',
             'assigned_mentor_details', 'community_feedback', 'discussions',
             'project_lifecycle', 'version_history', 'evaluations', 'created_at', 'updated_at'
         ]
+
+    def get_issue_details(self, obj):
+        if obj.issue:
+            request = self.context.get('request')
+            photo_url = None
+            if obj.issue.photo:
+                photo_url = request.build_absolute_uri(obj.issue.photo.url) if request else obj.issue.photo.url
+            return {
+                'id': obj.issue.id,
+                'public_id': getattr(obj.issue, 'public_id', None),
+                'title': obj.issue.title,
+                'category': obj.issue.category,
+                'district': obj.issue.district,
+                'status': obj.issue.status,
+                'photo': photo_url,
+                'photo_url': obj.issue.photo_url,
+            }
+        return None
 
     def to_representation(self, instance):
         """
@@ -472,6 +495,10 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     def get_challenge_details(self, obj):
         if obj.challenge:
+            request = self.context.get('request')
+            photo_url = None
+            if obj.challenge.photo:
+                photo_url = request.build_absolute_uri(obj.challenge.photo.url) if request else obj.challenge.photo.url
             return {
                 'id': obj.challenge.id,
                 'public_id': getattr(obj.challenge, 'public_id', None),
@@ -479,6 +506,8 @@ class ProjectSerializer(serializers.ModelSerializer):
                 'category': obj.challenge.category,
                 'district': obj.challenge.district,
                 'status': obj.challenge.status,
+                'photo': photo_url,
+                'photo_url': obj.challenge.photo_url,
             }
         return None
 

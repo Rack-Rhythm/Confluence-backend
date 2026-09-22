@@ -12,6 +12,9 @@ class IndustryEngagementSerializer(serializers.ModelSerializer):
     issue_status = serializers.CharField(source='issue.status', read_only=True)
     category = serializers.CharField(source='issue.category', read_only=True)
     district = serializers.CharField(source='issue.district', read_only=True)
+    issue_photo = serializers.ImageField(source='issue.photo', read_only=True)
+    issue_photo_url = serializers.CharField(source='issue.photo_url', read_only=True)
+    issue_details = serializers.SerializerMethodField()
     university_name = serializers.SerializerMethodField()
     pitch_title = serializers.CharField(source='pitch.title', read_only=True, allow_null=True)
     project_title = serializers.CharField(source='project.title', read_only=True, allow_null=True)
@@ -20,6 +23,7 @@ class IndustryEngagementSerializer(serializers.ModelSerializer):
         model = IndustryEngagement
         fields = [
             'id', 'issue', 'issue_title', 'issue_status', 'category', 'district',
+            'issue_photo', 'issue_photo_url', 'issue_details',
             'university_name',
             'pitch', 'pitch_title', 'project', 'project_title',
             'industry_org', 'industry_org_details',
@@ -33,4 +37,22 @@ class IndustryEngagementSerializer(serializers.ModelSerializer):
     def get_university_name(self, obj):
         if hasattr(obj.issue, 'adoption') and obj.issue.adoption and obj.issue.adoption.university:
             return obj.issue.adoption.university.name
+        return None
+
+    def get_issue_details(self, obj):
+        if obj.issue:
+            request = self.context.get('request')
+            photo_url = None
+            if obj.issue.photo:
+                photo_url = request.build_absolute_uri(obj.issue.photo.url) if request else obj.issue.photo.url
+            return {
+                'id': obj.issue.id,
+                'public_id': getattr(obj.issue, 'public_id', None),
+                'title': obj.issue.title,
+                'category': obj.issue.category,
+                'district': obj.issue.district,
+                'status': obj.issue.status,
+                'photo': photo_url,
+                'photo_url': obj.issue.photo_url,
+            }
         return None
